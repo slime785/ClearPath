@@ -1,14 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Let's Talk - Chat</title>
+  <title>ClearPath - Chat</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <ul id="messages"></ul>
-  <form id="form">
-    <input id="input" autocomplete="off" />
-    <button>Send</button>
-  </form>
+  <div id="sidebar">
+    <div class="logo">L</div>
+  </div>
+
+  <div id="main">
+    <div id="header">
+      <div>
+        <h2>Custody Schedule</h2>
+        <div class="sub">You &amp; (Whoever other person is)</div>
+      </div>
+    </div>
+
+    <ul id="messages"></ul>
+
+    <form id="form">
+      <input id="input" autocomplete="off" placeholder="Type a message…" />
+      <button>Send</button>
+    </form>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -32,11 +47,11 @@
     });
 
     socket.on('chat message', (payload) => {
-      console.log('received:', payload);
       const item = document.createElement('li');
       item.textContent = payload.text;
       item.className = payload.senderId === myId ? 'sent' : 'received';
       messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
     });
   </script>
 </body>
