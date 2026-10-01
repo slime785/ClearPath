@@ -9,14 +9,20 @@ const io = new Server(server);
 app.use(express.static('public'));
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
+  console.log('a user connected:', socket.id);
 
   socket.on('chat message', (msg) => {
-    io.emit('chat message', msg); //sends to everyone connected to the chat
+    const trimmed = msg.trim();
+    if (!trimmed) {
+      return; //ignores the empty messages
+    }
+    const payload = { senderId: socket.id, text: trimmed };
+    console.log('broadcasting:', payload);
+    io.emit('chat message', payload);
   });
 
   socket.on('disconnect', () => {
-    console.log('user disconnected');
+    console.log('user disconnected:', socket.id);
   });
 });
 
