@@ -17,6 +17,11 @@
     const input = document.getElementById('input');
     const messages = document.getElementById('messages');
 
+    let myId = null;
+    socket.on('connect', () => {
+      myId = socket.id;
+    });
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (input.value) {
@@ -25,9 +30,11 @@
       }
     });
 
-    socket.on('chat message', (msg) => {
+    socket.on('chat message', (payload) => {
+      console.log('received:', payload);
       const item = document.createElement('li');
-      item.textContent = msg;
+      item.textContent = payload.text;
+      item.className = payload.senderId === myId ? 'sent' : 'received';
       messages.appendChild(item);
     });
   </script>
