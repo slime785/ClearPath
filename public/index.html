@@ -17,15 +17,16 @@
     const input = document.getElementById('input');
     const messages = document.getElementById('messages');
 
-    let myId = null;
-    socket.on('connect', () => {
-      myId = socket.id;
-    });
+    let myId = localStorage.getItem('userId');
+    if (!myId) {
+      myId = 'user-' + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem('userId', myId);
+    }
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (input.value) {
-        socket.emit('chat message', input.value);
+        socket.emit('chat message', { senderId: myId, text: input.value });
         input.value = '';
       }
     });

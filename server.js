@@ -11,12 +11,12 @@ app.use(express.static('public'));
 io.on('connection', (socket) => {
   console.log('a user connected:', socket.id);
 
-  socket.on('chat message', (msg) => {
-    const trimmed = msg.trim();
+  socket.on('chat message', (data) => {
+    const trimmed = data.text.trim();
     if (!trimmed) {
-      return; //ignores the empty messages
+      return;
     }
-    const payload = { senderId: socket.id, text: trimmed };
+    const payload = { senderId: data.senderId, text: trimmed };
     console.log('broadcasting:', payload);
     io.emit('chat message', payload);
   });
