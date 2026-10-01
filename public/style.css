@@ -1,0 +1,119 @@
+html, body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  display: flex;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #FAF8F4;
+  color: #2E2C29;
+}
+
+/*Sidebar*/
+#sidebar {
+  width: 88px;
+  flex-shrink: 0;
+  background: #2E2C29;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0;
+  gap: 24px;
+}
+#sidebar .logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #3E7C7B;
+  color: #FAF8F4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+/*Main column*/
+#main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/*Header*/
+#header {
+  height: 76px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #E8E3D9;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+}
+#header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+#header .sub {
+  font-size: 13px;
+  color: #8A8478;
+}
+
+/*Messages*/
+#messages {
+  list-style: none;
+  margin: 0;
+  padding: 28px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+#messages li {
+  max-width: 420px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+#messages li.received {
+  align-self: flex-start;
+  background: #FFFFFF;
+  border: 1px solid #E8E3D9;
+  border-radius: 4px 16px 16px 16px;
+}
+#messages li.sent {
+  align-self: flex-end;
+  background: #3E7C7B;
+  color: #FAF8F4;
+  border-radius: 16px 4px 16px 16px;
+}
+
+/*Composer*/
+form {
+  display: flex;
+  gap: 12px;
+  padding: 20px 40px;
+  border-top: 1px solid #E8E3D9;
+  flex-shrink: 0;
+}
+#input {
+  flex-grow: 1;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #E8E3D9;
+  background: #FFFFFF;
+  font-size: 15px;
+}
+button {
+  background: #2E2C29;
+  color: #FAF8F4;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
