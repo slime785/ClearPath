@@ -19,6 +19,14 @@
 
     <ul id="messages"></ul>
 
+
+  <div id="username-area">
+    <input id="username" placeholder="Enter your username" />
+    <button id="joinButton" type="button">Join Chat</button>
+  </div>
+
+
+
     <form id="form">
       <input id="input" autocomplete="off" placeholder="Type a message…" />
       <button>Send</button>
@@ -32,23 +40,41 @@
     const input = document.getElementById('input');
     const messages = document.getElementById('messages');
 
+    const usernameInput = document.getElementById('username');
+    const joinButton = document.getElementById('joinButton');
+
+    let username = '';
     let myId = localStorage.getItem('userId');
     if (!myId) {
       myId = 'user-' + Math.random().toString(36).slice(2, 10);
       localStorage.setItem('userId', myId);
     }
 
+    input.disabled = true;
+
+    joinButton.addEventListener('click', () => {
+      username = usernameInput.value.trim()
+      if (username !== ''){
+        usernameInput.disabled = true;
+        joinButton.disabled = true;
+        input.disabled = false;
+        input.focus();
+      }
+    })
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (input.value) {
-        socket.emit('chat message', { senderId: myId, text: input.value });
+      //check for username and msgs
+      if (username !== '' && input.value.trim() !== '') {
+        socket.emit('chat message', { senderId: myId, 
+          username: username, text: input.value });
         input.value = '';
       }
     });
 
     socket.on('chat message', (payload) => {
       const item = document.createElement('li');
-      item.textContent = payload.text;
+      item.textContent = `${payload.username}: ${payload.text}`;
       item.className = payload.senderId === myId ? 'sent' : 'received';
       messages.appendChild(item);
       messages.scrollTop = messages.scrollHeight;
