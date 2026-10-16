@@ -26,6 +26,10 @@ io.on('connection', (socket) => {
   });
 });
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 server.listen(3000, () => {
   console.log('listening on http://localhost:3000');
 });

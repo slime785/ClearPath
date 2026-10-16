@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>ClearPath - Chat</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <div id="sidebar">
     <div class="logo">L</div>
@@ -19,9 +21,12 @@
 
     <ul id="messages"></ul>
 
+    <div id="scriptsPanel" hidden></div>
+
     <form id="form">
-      <input id="input" autocomplete="off" placeholder="Type a message…" />
-      <button>Send</button>
+      <button type="button" id="scriptsBtn">Scripts</button>
+      <div id="composer">Pick a script to start</div>
+      <button id="sendBtn" disabled>Send</button>
     </form>
   </div>
 
@@ -29,7 +34,10 @@
   <script>
     const socket = io();
     const form = document.getElementById('form');
-    const input = document.getElementById('input');
+    const composer = document.getElementById('composer');
+    const sendBtn = document.getElementById('sendBtn');
+    const scriptsBtn = document.getElementById('scriptsBtn');
+    const scriptsPanel = document.getElementById('scriptsPanel');
     const messages = document.getElementById('messages');
 
     let myId = localStorage.getItem('userId');
@@ -38,12 +46,48 @@
       localStorage.setItem('userId', myId);
     }
 
+    let chosen = null;
+    let blankInputs = [];
+
+    function checkReady() {
+      sendBtn.disabled = !chosen || blankInputs.some(i => !i.value.trim());
+    }
+
+    function showScript(category, index, text) {
+      chosen = { category, index };
+      composer.innerHTML = '';
+      blankInputs = [];
+      const parts = text.split(/(\[[^\]]+\])/);
+      parts.forEach(part => {
+        if (part.startsWith('[') && part.endsWith(']')) {
+          const box = document.createElement('input');
+          box.className = 'blank';
+          box.placeholder = part.slice(1, -1);
+          box.maxLength = 40;
+          box.addEventListener('input', checkReady);
+          composer.appendChild(box);
+          blankInputs.push(box);
+        } else {
+          composer.appendChild(document.createTextNode(part));
+        }
+      });
+      checkReady();
+      if (blankInputs.length) blankInputs[0].focus();
+    }
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (input.value) {
-        socket.emit('chat message', { senderId: myId, text: input.value });
-        input.value = '';
-      }
+      if (sendBtn.disabled) return;
+      socket.emit('chat message', {
+        senderId: myId,
+        category: chosen.category,
+        index: chosen.index,
+        blanks: blankInputs.map(i => i.value.trim())
+      });
+      chosen = null;
+      blankInputs = [];
+      composer.textContent = 'Pick a script to start';
+      checkReady();
     });
 
     socket.on('chat message', (payload) => {
@@ -53,6 +97,34 @@
       messages.appendChild(item);
       messages.scrollTop = messages.scrollHeight;
     });
+
+    fetch('/scripts.json')
+      .then(res => res.json())
+      .then(data => {
+        for (const category in data) {
+          const title = document.createElement('div');
+          title.className = 'script-title';
+          title.textContent = category;
+          scriptsPanel.appendChild(title);
+
+          data[category].forEach((text, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'script-item';
+            btn.textContent = text;
+            btn.addEventListener('click', () => {
+              showScript(category, index, text);
+              scriptsPanel.hidden = true;
+            });
+            scriptsPanel.appendChild(btn);
+          });
+        }
+      });
+
+    scriptsBtn.addEventListener('click', () => {
+      scriptsPanel.hidden = !scriptsPanel.hidden;
+    });
   </script>
 </body>
+
 </html>
