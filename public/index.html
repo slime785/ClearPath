@@ -90,12 +90,19 @@
       checkReady();
     });
 
-    socket.on('chat message', (payload) => {
+    function addMessage(payload) {
       const item = document.createElement('li');
       item.textContent = payload.text;
       item.className = payload.senderId === myId ? 'sent' : 'received';
       messages.appendChild(item);
       messages.scrollTop = messages.scrollHeight;
+    }
+
+    socket.on('chat message', addMessage);
+
+    socket.on('history', (list) => {
+      messages.innerHTML = '';
+      list.forEach(addMessage);
     });
 
     fetch('/scripts.json')
