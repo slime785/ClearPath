@@ -1,0 +1,17 @@
+{
+  "Scheduling": [
+    "Can we confirm the pickup time for [day]?",
+    "I need to change [day] to [new day]. Does that work for you?"
+  ],
+  "Calming down": [
+    "I'd like to talk about this when we're both calm. Can we pick a time?",
+    "I want to work this out. Can we take a break and come back to it?"
+  ],
+  "School and health": [
+    "Can you share the details about [school event] so we can both plan?",
+    "I'd like us to decide on this together. What works for you?"
+  ],
+  "Expressing a concern": [
+    "I felt frustrated when [event]. Can we find a way to handle this better?"
+  ]
+}
