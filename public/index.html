@@ -32,19 +32,19 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io();
+    let myId = localStorage.getItem('userId');
+    if (!myId) {
+      myId = 'user-' + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem('userId', myId);
+    }
+
+    const socket = io({ auth: { userId: myId } });
     const form = document.getElementById('form');
     const composer = document.getElementById('composer');
     const sendBtn = document.getElementById('sendBtn');
     const scriptsBtn = document.getElementById('scriptsBtn');
     const scriptsPanel = document.getElementById('scriptsPanel');
     const messages = document.getElementById('messages');
-
-    let myId = localStorage.getItem('userId');
-    if (!myId) {
-      myId = 'user-' + Math.random().toString(36).slice(2, 10);
-      localStorage.setItem('userId', myId);
-    }
 
     let chosen = null;
     let blankInputs = [];
@@ -79,7 +79,6 @@
       e.preventDefault();
       if (sendBtn.disabled) return;
       socket.emit('chat message', {
-        senderId: myId,
         category: chosen.category,
         index: chosen.index,
         blanks: blankInputs.map(i => i.value.trim())
@@ -103,6 +102,13 @@
     socket.on('history', (list) => {
       messages.innerHTML = '';
       list.forEach(addMessage);
+    });
+
+    socket.on('connect_error', (err) => {
+      composer.textContent = err.message === 'chat full'
+        ? 'This chat already has two people.'
+        : 'Could not connect.';
+      sendBtn.disabled = true;
     });
 
     fetch('/scripts.json')
