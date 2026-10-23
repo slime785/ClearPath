@@ -17,6 +17,7 @@
         <h2>Custody Schedule</h2>
         <div class="sub">You &amp; (Whoever other person is)</div>
       </div>
+      <button type="button" id="signOutBtn">Sign out</button>
     </div>
 
     <ul id="messages"></ul>
@@ -31,112 +32,140 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    let myId = localStorage.getItem('userId');
-    if (!myId) {
-      myId = 'user-' + Math.random().toString(36).slice(2, 10);
-      localStorage.setItem('userId', myId);
-    }
+  <script type="module">
+    import { auth } from './firebase-config.js';
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
-    const socket = io({ auth: { userId: myId } });
     const form = document.getElementById('form');
     const composer = document.getElementById('composer');
     const sendBtn = document.getElementById('sendBtn');
     const scriptsBtn = document.getElementById('scriptsBtn');
     const scriptsPanel = document.getElementById('scriptsPanel');
     const messages = document.getElementById('messages');
+    const signOutBtn = document.getElementById('signOutBtn');
 
-    let chosen = null;
-    let blankInputs = [];
+    let started = false;
 
-    function checkReady() {
-      sendBtn.disabled = !chosen || blankInputs.some(i => !i.value.trim());
-    }
+    signOutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      location.href = '/login.html';
+    });
 
-    function showScript(category, index, text) {
-      chosen = { category, index };
-      composer.innerHTML = '';
-      blankInputs = [];
-      const parts = text.split(/(\[[^\]]+\])/);
-      parts.forEach(part => {
-        if (part.startsWith('[') && part.endsWith(']')) {
-          const box = document.createElement('input');
-          box.className = 'blank';
-          box.placeholder = part.slice(1, -1);
-          box.maxLength = 40;
-          box.addEventListener('input', checkReady);
-          composer.appendChild(box);
-          blankInputs.push(box);
-        } else {
-          composer.appendChild(document.createTextNode(part));
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        location.href = '/login.html';
+        return;
+      }
+      if (started) return;
+      started = true;
+      start(user);
+    });
+
+    function start(user) {
+      const myId = user.uid;
+
+      const socket = io({
+        auth: (cb) => {
+          user.getIdToken().then(token => cb({ token }));
         }
       });
-      checkReady();
-      if (blankInputs.length) blankInputs[0].focus();
-    }
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (sendBtn.disabled) return;
-      socket.emit('chat message', {
-        category: chosen.category,
-        index: chosen.index,
-        blanks: blankInputs.map(i => i.value.trim())
+      let chosen = null;
+      let blankInputs = [];
+
+      function checkReady() {
+        sendBtn.disabled = !chosen || blankInputs.some(i => !i.value.trim());
+      }
+
+      function showScript(category, index, text) {
+        chosen = { category, index };
+        composer.innerHTML = '';
+        blankInputs = [];
+        const parts = text.split(/(\[[^\]]+\])/);
+        parts.forEach(part => {
+          if (part.startsWith('[') && part.endsWith(']')) {
+            const box = document.createElement('input');
+            box.className = 'blank';
+            box.placeholder = part.slice(1, -1);
+            box.maxLength = 40;
+            box.addEventListener('input', checkReady);
+            composer.appendChild(box);
+            blankInputs.push(box);
+          } else {
+            composer.appendChild(document.createTextNode(part));
+          }
+        });
+        checkReady();
+        if (blankInputs.length) blankInputs[0].focus();
+      }
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (sendBtn.disabled) return;
+        socket.emit('chat message', {
+          category: chosen.category,
+          index: chosen.index,
+          blanks: blankInputs.map(i => i.value.trim())
+        });
+        chosen = null;
+        blankInputs = [];
+        composer.textContent = 'Pick a script to start';
+        checkReady();
       });
-      chosen = null;
-      blankInputs = [];
-      composer.textContent = 'Pick a script to start';
-      checkReady();
-    });
 
-    function addMessage(payload) {
-      const item = document.createElement('li');
-      item.textContent = payload.text;
-      item.className = payload.senderId === myId ? 'sent' : 'received';
-      messages.appendChild(item);
-      messages.scrollTop = messages.scrollHeight;
-    }
+      function addMessage(payload) {
+        const item = document.createElement('li');
+        item.textContent = payload.text;
+        item.className = payload.senderId === myId ? 'sent' : 'received';
+        messages.appendChild(item);
+        messages.scrollTop = messages.scrollHeight;
+      }
 
-    socket.on('chat message', addMessage);
+      socket.on('chat message', addMessage);
 
-    socket.on('history', (list) => {
-      messages.innerHTML = '';
-      list.forEach(addMessage);
-    });
+      socket.on('history', (list) => {
+        messages.innerHTML = '';
+        list.forEach(addMessage);
+      });
 
-    socket.on('connect_error', (err) => {
-      composer.textContent = err.message === 'chat full'
-        ? 'This chat already has two people.'
-        : 'Could not connect.';
-      sendBtn.disabled = true;
-    });
+      socket.on('connect_error', (err) => {
+        if (err.message === 'not logged in') {
+          location.href = '/login.html';
+          return;
+        }
+        composer.textContent = err.message === 'chat full'
+          ? 'This chat already has two people.'
+          : 'Could not connect.';
+        sendBtn.disabled = true;
+      });
 
-    fetch('/scripts.json')
-      .then(res => res.json())
-      .then(data => {
-        for (const category in data) {
-          const title = document.createElement('div');
-          title.className = 'script-title';
-          title.textContent = category;
-          scriptsPanel.appendChild(title);
+      fetch('/scripts.json')
+        .then(res => res.json())
+        .then(data => {
+          for (const category in data) {
+            const title = document.createElement('div');
+            title.className = 'script-title';
+            title.textContent = category;
+            scriptsPanel.appendChild(title);
 
-          data[category].forEach((text, index) => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'script-item';
-            btn.textContent = text;
-            btn.addEventListener('click', () => {
-              showScript(category, index, text);
-              scriptsPanel.hidden = true;
+            data[category].forEach((text, index) => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'script-item';
+              btn.textContent = text;
+              btn.addEventListener('click', () => {
+                showScript(category, index, text);
+                scriptsPanel.hidden = true;
+              });
+              scriptsPanel.appendChild(btn);
             });
-            scriptsPanel.appendChild(btn);
-          });
-        }
-      });
+          }
+        });
 
-    scriptsBtn.addEventListener('click', () => {
-      scriptsPanel.hidden = !scriptsPanel.hidden;
-    });
+      scriptsBtn.addEventListener('click', () => {
+        scriptsPanel.hidden = !scriptsPanel.hidden;
+      });
+    }
   </script>
 </body>
 

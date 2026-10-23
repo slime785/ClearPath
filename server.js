@@ -3,6 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const db = require('./firebase');
 const scripts = require('./public/scripts.json');
+const { getAuth } = require('firebase-admin/auth');
 
 const app = express();
 const server = http.createServer(app);
@@ -29,16 +30,21 @@ async function sendHistory(socket) {
 
 const users = new Map();
 
-io.use((socket, next) => {
-  const userId = socket.handshake.auth.userId;
-  if (typeof userId !== 'string' || !userId) {
-    return next(new Error('no user id'));
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (typeof token !== 'string' || !token) {
+    return next(new Error('not logged in'));
   }
-  if (!users.has(userId) && users.size >= 2) {
-    return next(new Error('chat full'));
+  try {
+    const decoded = await getAuth().verifyIdToken(token);
+    if (!users.has(decoded.uid) && users.size >= 2) {
+      return next(new Error('chat full'));
+    }
+    socket.userId = decoded.uid;
+    next();
+  } catch (error) {
+    next(new Error('not logged in'));
   }
-  socket.userId = userId;
-  next();
 });
 
 io.on('connection', (socket) => {
