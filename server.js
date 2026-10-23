@@ -3,6 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const db = require('./firebase');
 const scripts = require('./public/scripts.json');
+const { getAuth } = require('firebase-admin/auth');
 
 const app = express();
 const server = http.createServer(app);
@@ -27,8 +28,28 @@ async function sendHistory(socket) {
   }
 }
 
+const users = new Map();
+
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (typeof token !== 'string' || !token) {
+    return next(new Error('not logged in'));
+  }
+  try {
+    const decoded = await getAuth().verifyIdToken(token);
+    if (!users.has(decoded.uid) && users.size >= 2) {
+      return next(new Error('chat full'));
+    }
+    socket.userId = decoded.uid;
+    next();
+  } catch (error) {
+    next(new Error('not logged in'));
+  }
+});
+
 io.on('connection', (socket) => {
   console.log('a user connected:', socket.id);
+  users.set(socket.userId, socket.id);
 
   socket.on('chat message', async (data) => {
     if (!data || typeof data.category !== 'string' || !Number.isInteger(data.index) || !Array.isArray(data.blanks)) return;
@@ -51,13 +72,13 @@ io.on('connection', (socket) => {
     });
     if (!valid) return;
 
-    const payload = { senderId: data.senderId, text };
+    const payload = { senderId: socket.userId, text };
     console.log('broadcasting:', payload);
     io.emit('chat message', payload);
 
     try {
       await db.collection('messages').add({
-        senderId: data.senderId,
+        senderId: socket.userId,
         text: text,
         category: data.category,
         index: data.index,
@@ -72,6 +93,9 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('user disconnected:', socket.id);
+    if (users.get(socket.userId) === socket.id) {
+      users.delete(socket.userId);
+    }
   });
 
   sendHistory(socket);
