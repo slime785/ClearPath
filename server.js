@@ -27,8 +27,23 @@ async function sendHistory(socket) {
   }
 }
 
+const users = new Map();
+
+io.use((socket, next) => {
+  const userId = socket.handshake.auth.userId;
+  if (typeof userId !== 'string' || !userId) {
+    return next(new Error('no user id'));
+  }
+  if (!users.has(userId) && users.size >= 2) {
+    return next(new Error('chat full'));
+  }
+  socket.userId = userId;
+  next();
+});
+
 io.on('connection', (socket) => {
   console.log('a user connected:', socket.id);
+  users.set(socket.userId, socket.id);
 
   socket.on('chat message', async (data) => {
     if (!data || typeof data.category !== 'string' || !Number.isInteger(data.index) || !Array.isArray(data.blanks)) return;
@@ -51,13 +66,13 @@ io.on('connection', (socket) => {
     });
     if (!valid) return;
 
-    const payload = { senderId: data.senderId, text };
+    const payload = { senderId: socket.userId, text };
     console.log('broadcasting:', payload);
     io.emit('chat message', payload);
 
     try {
       await db.collection('messages').add({
-        senderId: data.senderId,
+        senderId: socket.userId,
         text: text,
         category: data.category,
         index: data.index,
@@ -72,6 +87,9 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('user disconnected:', socket.id);
+    if (users.get(socket.userId) === socket.id) {
+      users.delete(socket.userId);
+    }
   });
 
   sendHistory(socket);
