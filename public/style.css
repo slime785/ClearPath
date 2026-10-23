@@ -196,3 +196,51 @@ button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.login-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.login-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 300px;
+  padding: 28px;
+  background: #fff;
+  border: 1px solid #E8E3D9;
+  border-radius: 12px;
+}
+
+.login-box input {
+  padding: 12px;
+  border: 1px solid #E8E3D9;
+  border-radius: 8px;
+}
+
+.login-box button {
+  padding: 12px;
+  background: #3E7C7B;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#loginError {
+  color: #B3261E;
+  font-size: 13px;
+}
+
+#signOutBtn {
+  background: transparent;
+  border: 1px solid #E8E3D9;
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: #8A8478;
+  cursor: pointer;
+  margin-left: auto;
+}
