@@ -44,19 +44,7 @@
     const messages = document.getElementById('messages');
     const signOutBtn = document.getElementById('signOutBtn');
 
-<<<<<<< HEAD
-    const usernameInput = document.getElementById('username');
-    const joinButton = document.getElementById('joinButton');
-
-    let username = '';
-    let myId = localStorage.getItem('userId');
-    if (!myId) {
-      myId = 'user-' + Math.random().toString(36).slice(2, 10);
-      localStorage.setItem('userId', myId);
-    }
-=======
     let started = false;
->>>>>>> a6f184b5d7fb525b8ff88c88f62706a121dca0ad
 
     signOutBtn.addEventListener('click', async () => {
       await signOut(auth);
@@ -125,15 +113,6 @@
         checkReady();
       });
 
-<<<<<<< HEAD
-    function addMessage(payload) {
-      const item = document.createElement('li');
-      item.textContent = `${payload.username}: ${payload.text}`;
-      item.className = payload.senderId === myId ? 'sent' : 'received';
-      messages.appendChild(item);
-      messages.scrollTop = messages.scrollHeight;
-    }
-=======
       function addMessage(payload) {
         const item = document.createElement('li');
         item.textContent = payload.text;
@@ -141,7 +120,6 @@
         messages.appendChild(item);
         messages.scrollTop = messages.scrollHeight;
       }
->>>>>>> a6f184b5d7fb525b8ff88c88f62706a121dca0ad
 
       socket.on('chat message', addMessage);
 
