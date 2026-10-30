@@ -47,6 +47,8 @@ web_modules/
 # Firebase Credentials
 firebase-key.json
 
+.env
+
 # TypeScript cache
 *.tsbuildinfo
 
