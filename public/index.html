@@ -133,8 +133,8 @@
           location.href = '/login.html';
           return;
         }
-        composer.textContent = err.message === 'chat full'
-          ? 'This chat already has two people.'
+        composer.textContent = err.message === 'no case'
+          ? "Your account isn't assigned to a case yet."
           : 'Could not connect.';
         sendBtn.disabled = true;
       });
