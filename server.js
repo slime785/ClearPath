@@ -17,7 +17,11 @@ app.get('/api/health', (req, res) => {
 
 async function sendHistory(socket) {
   try {
-    const snap = await db.collection('messages').orderBy('timestamp', 'desc').limit(50).get();
+    const snap = await db.collection('messages')
+      .where('caseId', '==', socket.caseId)
+      .orderBy('timestamp', 'desc')
+      .limit(50)
+      .get();
     const history = snap.docs
       .map(d => d.data())
       .reverse()
@@ -28,28 +32,35 @@ async function sendHistory(socket) {
   }
 }
 
-const users = new Map();
-
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
   if (typeof token !== 'string' || !token) {
     return next(new Error('not logged in'));
   }
+  let decoded;
   try {
-    const decoded = await getAuth().verifyIdToken(token);
-    if (!users.has(decoded.uid) && users.size >= 2) {
-      return next(new Error('chat full'));
+    decoded = await getAuth().verifyIdToken(token);
+  } catch (error) {
+    return next(new Error('not logged in'));
+  }
+  try {
+    const userDoc = await db.collection('users').doc(decoded.uid).get();
+    const caseId = userDoc.exists ? userDoc.get('caseId') : null;
+    if (typeof caseId !== 'string' || !caseId) {
+      return next(new Error('no case'));
     }
     socket.userId = decoded.uid;
+    socket.caseId = caseId;
     next();
   } catch (error) {
-    next(new Error('not logged in'));
+    console.error('User lookup failure:', error);
+    next(new Error('no case'));
   }
 });
 
 io.on('connection', (socket) => {
-  console.log('a user connected:', socket.id);
-  users.set(socket.userId, socket.id);
+  console.log('a user connected:', socket.id, 'case:', socket.caseId);
+  socket.join(socket.caseId);
 
   socket.on('chat message', async (data) => {
     if (!data || typeof data.category !== 'string' || !Number.isInteger(data.index) || !Array.isArray(data.blanks)) return;
@@ -73,12 +84,13 @@ io.on('connection', (socket) => {
     if (!valid) return;
 
     const payload = { senderId: socket.userId, text };
-    console.log('broadcasting:', payload);
-    io.emit('chat message', payload);
+    console.log('broadcasting to', socket.caseId, payload);
+    io.to(socket.caseId).emit('chat message', payload);
 
     try {
       await db.collection('messages').add({
         senderId: socket.userId,
+        caseId: socket.caseId,
         text: text,
         category: data.category,
         index: data.index,
@@ -93,9 +105,6 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('user disconnected:', socket.id);
-    if (users.get(socket.userId) === socket.id) {
-      users.delete(socket.userId);
-    }
   });
 
   sendHistory(socket);
