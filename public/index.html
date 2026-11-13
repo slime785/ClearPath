@@ -138,6 +138,9 @@
           : 'Could not connect.';
         sendBtn.disabled = true;
       });
+        socket.on('disconnect', (reason) => {
+        if (reason === 'io server disconnect') location.reload();
+      });
 
       fetch('/scripts.json')
         .then(res => res.json())
