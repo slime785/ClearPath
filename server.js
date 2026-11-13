@@ -61,6 +61,7 @@ io.use(async (socket, next) => {
 io.on('connection', (socket) => {
   console.log('a user connected:', socket.id, 'case:', socket.caseId);
   socket.join(socket.caseId);
+  socket.join('user:' + socket.userId);
 
   socket.on('chat message', async (data) => {
     if (!data || typeof data.category !== 'string' || !Number.isInteger(data.index) || !Array.isArray(data.blanks)) return;
@@ -108,6 +109,21 @@ io.on('connection', (socket) => {
   });
 
   sendHistory(socket);
+});
+
+const lastCase = new Map();
+
+db.collection('users').onSnapshot(snap => {
+  snap.docChanges().forEach(change => {
+    const uid = change.doc.id;
+    const caseId = change.type === 'removed' ? null : (change.doc.get('caseId') || null);
+    if (lastCase.has(uid) && lastCase.get(uid) !== caseId) {
+      io.in('user:' + uid).disconnectSockets();
+    }
+    lastCase.set(uid, caseId);
+  });
+}, error => {
+  console.error('users listener failed:', error);
 });
 
 server.listen(3000, () => {
