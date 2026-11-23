@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const db = require('./firebase');
 const scripts = require('./public/scripts.json');
 const { getAuth } = require('firebase-admin/auth');
+const { FieldValue } = require('firebase-admin/firestore');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,6 +14,33 @@ app.use(express.static('public'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+app.post('/api/signup', async (req, res) => {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!token) return res.status(401).json({ error: 'not logged in' });
+
+  let decoded;
+  try {
+    decoded = await getAuth().verifyIdToken(token);
+  } catch (error) {
+    return res.status(401).json({ error: 'not logged in' });
+  }
+
+  try {
+    await db.collection('users').doc(decoded.uid).create({
+      email: decoded.email || null,
+      role: 'parent',
+      caseId: null,
+      createdAt: FieldValue.serverTimestamp()
+    });
+    res.status(201).json({ ok: true });
+  } catch (error) {
+    if (error.code === 6) return res.status(409).json({ error: 'already exists' });
+    console.error('Signup failure:', error);
+    res.status(500).json({ error: 'server error' });
+  }
 });
 
 async function sendHistory(socket) {
