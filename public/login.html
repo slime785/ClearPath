@@ -30,12 +30,25 @@
       e.preventDefault();
       loginError.textContent = '';
       try {
-        await signInWithEmailAndPassword(
+        const cred = await signInWithEmailAndPassword(
           auth,
           document.getElementById('email').value,
           document.getElementById('password').value
         );
-        location.href = './';
+        let dest = './';
+        try {
+          const token = await cred.user.getIdToken();
+          const res = await fetch('api/me', {
+            headers: { Authorization: 'Bearer ' + token }
+          });
+          if (res.ok) {
+            const me = await res.json();
+            if (me.role === 'admin') dest = 'admin.html';
+          }
+        } catch (error) {
+          // if this fails, just go to the chat page
+        }
+        location.href = dest;
       } catch (error) {
         loginError.textContent = 'Wrong email or password.';
       }
