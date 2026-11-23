@@ -5,26 +5,29 @@
   <title>ClearPath - Legal Q&amp;A</title>
   <link rel="stylesheet" href="style.css" />
   <style>
+    .qa-scroll {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
     .qa-wrap {
       max-width: 760px;
       margin: 0 auto;
-      padding: 24px 20px 48px;
-    }
-
-    .qa-wrap h2 {
-      margin-top: 0;
+      padding: 28px 40px 48px;
+      box-sizing: border-box;
     }
 
     .qa-note {
       font-size: 14px;
-      opacity: 0.75;
-      margin-bottom: 24px;
+      color: #8A8478;
+      margin: 0 0 24px;
     }
 
     .qa-wrap details {
-      border: 1px solid rgba(0, 0, 0, 0.15);
-      border-radius: 8px;
-      padding: 12px 16px;
+      background: #fff;
+      border: 1px solid #E8E3D9;
+      border-radius: 12px;
+      padding: 14px 18px;
       margin-bottom: 10px;
     }
 
@@ -35,90 +38,124 @@
 
     .qa-wrap details p {
       margin: 10px 0 6px;
+      font-size: 14px;
+      line-height: 1.5;
     }
 
     .qa-wrap details ul {
       margin: 6px 0 4px;
       padding-left: 20px;
+      font-size: 14px;
     }
 
     .qa-wrap li {
       margin-bottom: 4px;
     }
 
+    .qa-wrap a {
+      color: #3E7C7B;
+    }
+
     .qa-footer {
       margin-top: 28px;
       font-size: 13px;
-      opacity: 0.75;
+      color: #8A8478;
     }
   </style>
 </head>
 
 <body>
-  <div class="qa-wrap">
-    <p><a href="./">&larr; Back to chat</a></p>
-    <h2>Legal Q&amp;A</h2>
-    <p class="qa-note">
-      Quick answers and trusted websites for common custody questions in California.
-      These links open official sites in a new tab.
-    </p>
+  <div id="sidebar">
+    <div class="logo">L</div>
+    <a class="nav-btn" href="./">Chat</a>
+    <a class="nav-btn active" href="legal.html">Q&amp;A</a>
+    <a class="nav-btn" id="adminLink" href="admin.html" hidden>Admin</a>
+  </div>
 
-    <details>
-      <summary>How do I start a custody or visitation case?</summary>
-      <p>The court's self-help center explains the steps and has the forms you need.</p>
-      <ul>
-        <li><a href="https://selfhelp.courts.ca.gov/" target="_blank" rel="noopener noreferrer">California Courts Self-Help Guide</a></li>
-        <li><a href="https://www.kern.courts.ca.gov/self-help/families-children" target="_blank" rel="noopener noreferrer">Kern County Superior Court: Families and Children</a></li>
-      </ul>
-    </details>
+  <div id="main">
+    <div id="header">
+      <div>
+        <h2>Legal Q&amp;A</h2>
+        <div class="sub">Trusted sites for common custody questions</div>
+      </div>
+      <button type="button" id="signOutBtn">Sign out</button>
+    </div>
 
-    <details>
-      <summary>Where do I find court forms?</summary>
-      <p>California court forms are free to download. Kern County also has form packets.</p>
-      <ul>
-        <li><a href="https://www.courts.ca.gov/forms.htm" target="_blank" rel="noopener noreferrer">California Courts: Forms</a></li>
-        <li><a href="https://www.kern.courts.ca.gov/self-help" target="_blank" rel="noopener noreferrer">Kern County Superior Court: Self-Help</a></li>
-      </ul>
-    </details>
+    <div class="qa-scroll">
+      <div class="qa-wrap">
+        <p class="qa-note">
+          Quick answers and official websites for common custody questions in California.
+          Links open in a new tab.
+        </p>
 
-    <details>
-      <summary>Can I get free or low-cost legal help?</summary>
-      <p>Legal aid groups and the court's self-help center can help if you can't afford a lawyer.</p>
-      <ul>
-        <li><a href="https://www.lawhelpca.org/" target="_blank" rel="noopener noreferrer">LawHelpCA</a></li>
-        <li><a href="https://www.kern.courts.ca.gov/self-help/self-help-center" target="_blank" rel="noopener noreferrer">Kern County Self-Help Center</a></li>
-      </ul>
-    </details>
+        <details>
+          <summary>How do I start a custody or visitation case?</summary>
+          <p>The court's self-help center explains the steps and has the forms you need.</p>
+          <ul>
+            <li><a href="https://selfhelp.courts.ca.gov/" target="_blank" rel="noopener noreferrer">California Courts Self-Help Guide</a></li>
+            <li><a href="https://www.kern.courts.ca.gov/self-help/families-children" target="_blank" rel="noopener noreferrer">Kern County Superior Court: Families and Children</a></li>
+          </ul>
+        </details>
 
-    <details>
-      <summary>How does child support work?</summary>
-      <p>The California Department of Child Support Services has information on opening a case and getting payments.</p>
-      <ul>
-        <li><a href="https://childsupport.ca.gov/" target="_blank" rel="noopener noreferrer">California Child Support Services</a></li>
-      </ul>
-    </details>
+        <details>
+          <summary>Where do I find court forms?</summary>
+          <p>California court forms are free to download. Kern County also has form packets.</p>
+          <ul>
+            <li><a href="https://www.courts.ca.gov/forms.htm" target="_blank" rel="noopener noreferrer">California Courts: Forms</a></li>
+            <li><a href="https://www.kern.courts.ca.gov/self-help" target="_blank" rel="noopener noreferrer">Kern County Superior Court: Self-Help</a></li>
+          </ul>
+        </details>
 
-    <details>
-      <summary>Where can I learn about the family court in Kern County?</summary>
-      <p>The Kern County Superior Court has pages on its family law division and what the court can and can't do.</p>
-      <ul>
-        <li><a href="https://kern.courts.ca.gov/divisions/family-law" target="_blank" rel="noopener noreferrer">Kern County Superior Court: Family Law</a></li>
-        <li><a href="https://kern.courts.ca.gov/general-information/legal-resources" target="_blank" rel="noopener noreferrer">Kern County Superior Court: Legal Resources</a></li>
-      </ul>
-    </details>
+        <details>
+          <summary>Can I get free or low-cost legal help?</summary>
+          <p>Legal aid groups and the court's self-help center can help if you can't afford a lawyer.</p>
+          <ul>
+            <li><a href="https://www.lawhelpca.org/" target="_blank" rel="noopener noreferrer">LawHelpCA</a></li>
+            <li><a href="https://www.kern.courts.ca.gov/self-help/self-help-center" target="_blank" rel="noopener noreferrer">Kern County Self-Help Center</a></li>
+          </ul>
+        </details>
 
-    <p class="qa-footer">
-      ClearPath is not a law firm, and this page is general information, not legal advice.
-      For advice about your own situation, talk to a lawyer or your court's self-help center.
-    </p>
+        <details>
+          <summary>How does child support work?</summary>
+          <p>The California Department of Child Support Services has information on opening a case and getting payments.</p>
+          <ul>
+            <li><a href="https://childsupport.ca.gov/" target="_blank" rel="noopener noreferrer">California Child Support Services</a></li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>Where can I learn about the family court in Kern County?</summary>
+          <p>The Kern County Superior Court has pages on its family law division and what the court can and can't do.</p>
+          <ul>
+            <li><a href="https://kern.courts.ca.gov/divisions/family-law" target="_blank" rel="noopener noreferrer">Kern County Superior Court: Family Law</a></li>
+            <li><a href="https://kern.courts.ca.gov/general-information/legal-resources" target="_blank" rel="noopener noreferrer">Kern County Superior Court: Legal Resources</a></li>
+          </ul>
+        </details>
+
+        <p class="qa-footer">
+          ClearPath is not a law firm, and this page is general information, not legal advice.
+          For advice about your own situation, talk to a lawyer or your court's self-help center.
+        </p>
+      </div>
+    </div>
   </div>
 
   <script type="module">
     import { auth } from "./firebase-config.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { showAdminLink } from "./nav.js";
+
+    document.getElementById('signOutBtn').addEventListener('click', async () => {
+      await signOut(auth);
+      location.href = 'login.html';
+    });
 
     onAuthStateChanged(auth, (user) => {
-      if (!user) location.href = 'login.html';
+      if (!user) {
+        location.href = 'login.html';
+        return;
+      }
+      showAdminLink(user);
     });
   </script>
 </body>

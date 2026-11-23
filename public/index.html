@@ -9,6 +9,9 @@
 <body>
   <div id="sidebar">
     <div class="logo">L</div>
+    <a class="nav-btn active" href="./">Chat</a>
+    <a class="nav-btn" href="legal.html">Q&amp;A</a>
+    <a class="nav-btn" id="adminLink" href="admin.html" hidden>Admin</a>
   </div>
 
   <div id="main">
@@ -17,10 +20,7 @@
         <h2>Custody Schedule</h2>
         <div class="sub">You &amp; (Whoever other person is)</div>
       </div>
-      <div>
-        <a href="legal.html" style="margin-right:16px;">Legal Q&amp;A</a>
-        <button type="button" id="signOutBtn">Sign out</button>
-      </div>
+      <button type="button" id="signOutBtn">Sign out</button>
     </div>
 
     <ul id="messages"></ul>
@@ -38,6 +38,7 @@
   <script type="module">
     import { auth } from './firebase-config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { showAdminLink } from './nav.js';
 
     const form = document.getElementById('form');
     const composer = document.getElementById('composer');
@@ -61,6 +62,7 @@
       }
       if (started) return;
       started = true;
+      showAdminLink(user);
       start(user);
     });
 
@@ -144,7 +146,8 @@
           : 'Could not connect.';
         sendBtn.disabled = true;
       });
-        socket.on('disconnect', (reason) => {
+
+      socket.on('disconnect', (reason) => {
         if (reason === 'io server disconnect') location.reload();
       });
 
