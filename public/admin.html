@@ -16,7 +16,7 @@
     <tbody></tbody>
   </table>
   <datalist id="cases"></datalist>
-  <p><a href="/">Back to chat</a></p>
+  <p><a href="./">Back to chat</a></p>
 
   <script type="module">
     import { auth } from "./firebase-config.js";
@@ -39,7 +39,7 @@
     }
 
     async function loadUsers() {
-      const res = await api('/api/admin/users');
+      const res = await api('api/admin/users');
       if (res.status === 403) {
         statusBox.textContent = 'You are not an admin.';
         return;
@@ -84,7 +84,7 @@
         save.textContent = 'Save';
         save.addEventListener('click', async () => {
           const value = input.value.trim();
-          const res = await api('/api/admin/assign', {
+          const res = await api('api/admin/assign', {
             method: 'POST',
             body: JSON.stringify({ uid: u.uid, caseId: value || null })
           });
@@ -100,7 +100,7 @@
 
     onAuthStateChanged(auth, (user) => {
       if (!user) {
-        location.href = '/login.html';
+        location.href = 'login.html';
         return;
       }
       currentUser = user;
