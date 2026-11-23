@@ -49,6 +49,27 @@ api.post('/signup', async (req, res) => {
   }
 });
 
+api.get('/me', async (req, res) => {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!token) return res.status(401).json({ error: 'not logged in' });
+
+  let decoded;
+  try {
+    decoded = await getAuth().verifyIdToken(token);
+  } catch (error) {
+    return res.status(401).json({ error: 'not logged in' });
+  }
+
+  try {
+    const doc = await db.collection('users').doc(decoded.uid).get();
+    res.json({ role: doc.exists ? (doc.get('role') || null) : null });
+  } catch (error) {
+    console.error('Me failure:', error);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
 async function requireAdmin(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : '';
