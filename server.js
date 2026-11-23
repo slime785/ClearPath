@@ -43,6 +43,68 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
+async function requireAdmin(req, res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!token) return res.status(401).json({ error: 'not logged in' });
+
+  let decoded;
+  try {
+    decoded = await getAuth().verifyIdToken(token);
+  } catch (error) {
+    return res.status(401).json({ error: 'not logged in' });
+  }
+
+  try {
+    const userDoc = await db.collection('users').doc(decoded.uid).get();
+    if (!userDoc.exists || userDoc.get('role') !== 'admin') {
+      return res.status(403).json({ error: 'not an admin' });
+    }
+    req.userId = decoded.uid;
+    next();
+  } catch (error) {
+    console.error('Admin check failure:', error);
+    res.status(500).json({ error: 'server error' });
+  }
+}
+
+app.use('/api/admin', express.json());
+
+app.get('/api/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const snap = await db.collection('users').get();
+    res.json(snap.docs.map(d => ({
+      uid: d.id,
+      email: d.get('email') || null,
+      role: d.get('role') || null,
+      caseId: d.get('caseId') || null
+    })));
+  } catch (error) {
+    console.error('Admin list failure:', error);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+app.post('/api/admin/assign', requireAdmin, async (req, res) => {
+  const { uid, caseId } = req.body || {};
+  if (typeof uid !== 'string' || !uid) {
+    return res.status(400).json({ error: 'bad uid' });
+  }
+  if (caseId !== null && !(typeof caseId === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(caseId))) {
+    return res.status(400).json({ error: 'bad caseId' });
+  }
+  try {
+    const ref = db.collection('users').doc(uid);
+    const doc = await ref.get();
+    if (!doc.exists) return res.status(404).json({ error: 'no such user' });
+    await ref.update({ caseId });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Admin assign failure:', error);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
 async function sendHistory(socket) {
   try {
     const snap = await db.collection('messages')
