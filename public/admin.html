@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>ClearPath - Admin</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <h2>Case assignment</h2>
+  <div id="status"></div>
+  <table id="users">
+    <thead>
+      <tr><th>Email</th><th>Role</th><th>Case</th><th></th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <datalist id="cases"></datalist>
+  <p><a href="/">Back to chat</a></p>
+
+  <script type="module">
+    import { auth } from "./firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+    const statusBox = document.getElementById('status');
+    const tbody = document.querySelector('#users tbody');
+    const caseList = document.getElementById('cases');
+    let currentUser = null;
+
+    async function api(path, options = {}) {
+      const token = await currentUser.getIdToken();
+      return fetch(path, {
+        ...options,
+        headers: {
+          Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    async function loadUsers() {
+      const res = await api('/api/admin/users');
+      if (res.status === 403) {
+        statusBox.textContent = 'You are not an admin.';
+        return;
+      }
+      if (!res.ok) {
+        statusBox.textContent = 'Could not load users.';
+        return;
+      }
+      const users = await res.json();
+      // unassigned users first
+      users.sort((a, b) => (a.caseId ? 1 : 0) - (b.caseId ? 1 : 0));
+
+      tbody.innerHTML = '';
+      caseList.innerHTML = '';
+      const seen = new Set();
+      for (const u of users) {
+        if (u.caseId && !seen.has(u.caseId)) {
+          seen.add(u.caseId);
+          const opt = document.createElement('option');
+          opt.value = u.caseId;
+          caseList.appendChild(opt);
+        }
+      }
+
+      for (const u of users) {
+        const tr = document.createElement('tr');
+
+        const email = document.createElement('td');
+        email.textContent = u.email || u.uid;
+        const role = document.createElement('td');
+        role.textContent = u.role || '';
+
+        const caseCell = document.createElement('td');
+        const input = document.createElement('input');
+        input.setAttribute('list', 'cases');
+        input.placeholder = 'no case';
+        input.value = u.caseId || '';
+        caseCell.appendChild(input);
+
+        const saveCell = document.createElement('td');
+        const save = document.createElement('button');
+        save.textContent = 'Save';
+        save.addEventListener('click', async () => {
+          const value = input.value.trim();
+          const res = await api('/api/admin/assign', {
+            method: 'POST',
+            body: JSON.stringify({ uid: u.uid, caseId: value || null })
+          });
+          statusBox.textContent = res.ok ? 'Saved.' : 'Could not save (use letters, numbers, - or _).';
+          if (res.ok) loadUsers();
+        });
+        saveCell.appendChild(save);
+
+        tr.append(email, role, caseCell, saveCell);
+        tbody.appendChild(tr);
+      }
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        location.href = '/login.html';
+        return;
+      }
+      currentUser = user;
+      loadUsers();
+    });
+  </script>
+</body>
+
+</html>
