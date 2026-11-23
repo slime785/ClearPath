@@ -31,7 +31,7 @@
     </form>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="socket.io.min.js"></script>
   <script type="module">
     import { auth } from './firebase-config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
@@ -48,12 +48,12 @@
 
     signOutBtn.addEventListener('click', async () => {
       await signOut(auth);
-      location.href = '/login.html';
+      location.href = 'login.html';
     });
 
     onAuthStateChanged(auth, (user) => {
       if (!user) {
-        location.href = '/login.html';
+        location.href = 'login.html';
         return;
       }
       if (started) return;
@@ -64,7 +64,10 @@
     function start(user) {
       const myId = user.uid;
 
+      const isProd = location.pathname.startsWith('/clearpath-26/');
       const socket = io({
+        path: isProd ? '/clearpath-26/api/socket.io' : '/socket.io',
+        transports: isProd ? ['polling'] : ['polling', 'websocket'],
         auth: (cb) => {
           user.getIdToken().then(token => cb({ token }));
         }
@@ -130,7 +133,7 @@
 
       socket.on('connect_error', (err) => {
         if (err.message === 'not logged in') {
-          location.href = '/login.html';
+          location.href = 'login.html';
           return;
         }
         composer.textContent = err.message === 'no case'
@@ -142,7 +145,7 @@
         if (reason === 'io server disconnect') location.reload();
       });
 
-      fetch('/scripts.json')
+      fetch('scripts.json')
         .then(res => res.json())
         .then(data => {
           for (const category in data) {

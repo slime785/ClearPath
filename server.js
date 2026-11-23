@@ -12,11 +12,17 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
-app.get('/api/health', (req, res) => {
+// On bender, NGINX removes /clearpath-26/api/ before the request reaches
+// this server, so the routes have to work with and without the /api prefix.
+const api = express.Router();
+app.use('/api', api);
+app.use('/', api);
+
+api.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.post('/api/signup', async (req, res) => {
+api.post('/signup', async (req, res) => {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : '';
   if (!token) return res.status(401).json({ error: 'not logged in' });
@@ -68,9 +74,9 @@ async function requireAdmin(req, res, next) {
   }
 }
 
-app.use('/api/admin', express.json());
+api.use('/admin', express.json());
 
-app.get('/api/admin/users', requireAdmin, async (req, res) => {
+api.get('/admin/users', requireAdmin, async (req, res) => {
   try {
     const snap = await db.collection('users').get();
     res.json(snap.docs.map(d => ({
@@ -85,7 +91,7 @@ app.get('/api/admin/users', requireAdmin, async (req, res) => {
   }
 });
 
-app.post('/api/admin/assign', requireAdmin, async (req, res) => {
+api.post('/admin/assign', requireAdmin, async (req, res) => {
   const { uid, caseId } = req.body || {};
   if (typeof uid !== 'string' || !uid) {
     return res.status(400).json({ error: 'bad uid' });
@@ -216,6 +222,7 @@ db.collection('users').onSnapshot(snap => {
   console.error('users listener failed:', error);
 });
 
-server.listen(3000, () => {
-  console.log('listening on http://localhost:3000');
+const port = process.env.PORT || 3000;
+server.listen(port, () => {
+  console.log('listening on port ' + port);
 });

@@ -35,7 +35,7 @@
           document.getElementById('email').value,
           document.getElementById('password').value
         );
-        location.href = '/';
+        location.href = './';
       } catch (error) {
         loginError.textContent = 'Wrong email or password.';
       }
@@ -50,7 +50,7 @@
         const result = await createUserWithEmailAndPassword(auth, email, password);
         const token = await result.user.getIdToken();
 
-        const res = await fetch('/api/signup', {
+        const res = await fetch('api/signup', {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + token }
         });
@@ -58,7 +58,7 @@
           throw new Error('signup endpoint failed: ' + res.status);
         }
 
-        location.href = "/";
+        location.href = './';
       } catch (error) {
         console.error(error);
         loginError.textContent = "Could not create the account.";
